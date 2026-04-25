@@ -41,7 +41,7 @@ typedef long LONG;
 typedef char CCHAR, *PCCHAR;
 typedef unsigned char UCHAR,*PUCHAR;
 typedef unsigned short USHORT,*PUSHORT;
-typedef unsigned long ULONG,*PULONG;
+typedef unsigned int ULONG,*PULONG;
 typedef char *PSZ;
 
 typedef void *PVOID,*LPVOID;

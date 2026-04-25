@@ -157,7 +157,7 @@ void
 	*stream << (int)Matrix4D;
     // sebi !NB
 	//*stream << reinterpret_cast<int>(mat);
-	*stream << reinterpret_cast<size_t>(mat);
+	*stream << static_cast<uint64_t>(reinterpret_cast<uintptr_t>(mat));
 
 	*stream << (int)ClippingState;
 	clippingState.Save(stream);
@@ -194,7 +194,7 @@ void
     // sebi !NB (because SetDrawData changed also)
 	//int i, pointerValue;
 	int i;
-    size_t pointerValue;
+    uint64_t pointerValue;
     //
 	Stuff::Point3D *coords = NULL;
 	Stuff::RGBAColor color;

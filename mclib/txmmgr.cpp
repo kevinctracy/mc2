@@ -374,7 +374,7 @@ void MC_TextureManager::flush (bool justTextures)
 //----------------------------------------------------------------------
 void MC_TextureManager::removeTextureNode (DWORD textureNode)
 {
-	if (textureNode != 0xffffffff)
+	if (masterTextureNodes && textureNode != 0xffffffff && textureNode < MC_MAXTEXTURES)
 	{
 		//-----------------------------------------------------------
 		masterTextureNodes[textureNode].destroy();

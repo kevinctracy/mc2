@@ -6,8 +6,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <SDL2/SDL.h>
-#include <GL/glew.h>
-#include <GL/gl.h>
+#include "utils/graphics.h"
 #include "utils/logging.h"
 
 // FIXME: think how to make it better when different parts need window
@@ -108,10 +107,17 @@ RenderWindow* create_window(const char* pwinname, int width, int height)
     // COMPATIBILITY, ES,...
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     //SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
+#ifdef __APPLE__
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+#endif
 
+#ifndef __APPLE__
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
 	//SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, GL_CONTEXT_FLAG_DEBUG_BIT);
 
     if (VERBOSE_MODES) {
@@ -206,8 +212,13 @@ RenderWindow* create_window(const char* pwinname, int width, int height)
     //fullscreen_mode.refresh_rate = state->refresh_rate;
 
     {
+        Uint32 window_flags = SDL_WINDOW_OPENGL;
+#ifndef PLATFORM_MACOS
+        window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
+#endif
+
         window = SDL_CreateWindow(pwinname ? pwinname : "--", 
-                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL|SDL_WINDOW_ALLOW_HIGHDPI);
+                SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, window_flags);
 
         if (!window) {
             fprintf(stderr, "Couldn't create window: %s\n", SDL_GetError());
@@ -224,6 +235,7 @@ RenderWindow* create_window(const char* pwinname, int width, int height)
         }
 
         SDL_ShowWindow(window);
+        SDL_ShowCursor(SDL_DISABLE);
     }
 
     RenderWindow* rw = new RenderWindow();

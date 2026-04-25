@@ -1,12 +1,12 @@
 #ifdef PLATFORM_WINDOWS
 #include <windows.h>
 #endif
-#include <GL/glew.h>
 #include <assert.h>
 #include <stdio.h>
 #include <cstring>
 #include <string>
 
+#include "utils/graphics.h"
 #include "utils/stream.h"
 #include "utils/logging.h"
 #include "utils/gl_utils.h"

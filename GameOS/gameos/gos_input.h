@@ -21,6 +21,8 @@ struct MouseInfo {
     float wheel_vert_;
     float wheel_hor_;
     KeyState button_state_[NUM_BUTTONS];
+    bool button_pressed_event_[NUM_BUTTONS];
+    bool button_released_event_[NUM_BUTTONS];
 };
 
 struct KeyboardInfo {

@@ -26,6 +26,7 @@ extern bool gosExitGameOS();
 
 extern bool gos_CreateAudio();
 extern void gos_DestroyAudio();
+extern SDL_Window* g_sdl_window;
 
 static bool g_exit = false;
 static bool g_focus_lost = false;
@@ -46,6 +47,20 @@ static void handle_key_down( SDL_Keysym* keysym ) {
     }
 }
 
+static void set_mouse_capture(bool enabled)
+{
+    if(!g_sdl_window)
+        return;
+
+    Uint32 flags = SDL_GetWindowFlags(g_sdl_window);
+    bool fullscreen = (flags & (SDL_WINDOW_FULLSCREEN | SDL_WINDOW_FULLSCREEN_DESKTOP)) != 0;
+    SDL_bool capture = enabled && fullscreen ? SDL_TRUE : SDL_FALSE;
+
+    SDL_SetWindowGrab(g_sdl_window, capture);
+    SDL_CaptureMouse(capture);
+    SDL_ShowCursor(enabled ? SDL_DISABLE : SDL_ENABLE);
+}
+
 static void process_events( void ) {
 
     input::beginUpdateMouseState();
@@ -54,10 +69,11 @@ static void process_events( void ) {
     while( SDL_PollEvent( &event ) ) {
 
         if(g_focus_lost) {
-            if(event.type != SDL_WINDOWEVENT_FOCUS_GAINED) {
+            if(event.type != SDL_WINDOWEVENT || event.window.event != SDL_WINDOWEVENT_FOCUS_GAINED) {
                 continue;
             } else {
                 g_focus_lost = false;
+                set_mouse_capture(true);
             }
         }
 
@@ -71,23 +87,32 @@ static void process_events( void ) {
         case SDL_QUIT:
             g_exit = true;
             break;
-		case SDL_WINDOWEVENT_RESIZED:
-			{
-				float w = (float)event.window.data1;
-				float h = (float)event.window.data2;
-				glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-                SPEW(("INPUT", "resize event: w: %f h:%f\n", w, h));
-			}
-			break;
-        case SDL_WINDOWEVENT_FOCUS_LOST:
-            g_focus_lost = true;
+        case SDL_WINDOWEVENT:
+            switch(event.window.event) {
+            case SDL_WINDOWEVENT_RESIZED:
+                {
+                    float w = (float)event.window.data1;
+                    float h = (float)event.window.data2;
+                    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+                    SPEW(("INPUT", "resize event: w: %f h:%f\n", w, h));
+                }
+                break;
+            case SDL_WINDOWEVENT_FOCUS_GAINED:
+                g_focus_lost = false;
+                set_mouse_capture(true);
+                break;
+            case SDL_WINDOWEVENT_FOCUS_LOST:
+                g_focus_lost = true;
+                set_mouse_capture(false);
+                break;
+            }
             break;
         case SDL_MOUSEMOTION:
             input::handleMouseMotion(&event); 
             break;
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP:
-            //input::handleMouseButton(&event);
+            input::handleMouseButton(&event);
             break;
         case SDL_MOUSEWHEEL:
             input::handleMouseWheel(&event);
@@ -262,6 +287,9 @@ int main(int argc, char** argv)
 
     graphics::make_current_context(ctx);
 
+#ifdef __APPLE__
+    glewExperimental = GL_TRUE;
+#endif
     GLenum err = glewInit();
     if (GLEW_OK != err)
     {
@@ -269,11 +297,15 @@ int main(int argc, char** argv)
         return 1;
     }
 
+    // Core-profile macOS drivers are pickier here, so only enable debug callbacks
+    // when the extension entry points are actually available.
+#if !defined(__APPLE__)
 	glEnable(GL_DEBUG_OUTPUT);
 	glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	//glPushDebugGroup(GL_DEBUG_SOURCE_APPLICATION, 76, 1, "My debug group");
 	glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, NULL, GL_TRUE);
 	glDebugMessageCallbackARB((GLDEBUGPROC)&OpenGLDebugLog, NULL);
+#endif
 
 
     SPEW(("GRAPHICS", "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION)));

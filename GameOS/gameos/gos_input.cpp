@@ -13,6 +13,8 @@ MouseInfo::MouseInfo()
      wheel_vert_(0), wheel_hor_(0)
 {
     memset(button_state_, 0 ,sizeof(button_state_));
+    memset(button_pressed_event_, 0, sizeof(button_pressed_event_));
+    memset(button_released_event_, 0, sizeof(button_released_event_));
 }
 
 KeyboardInfo::KeyboardInfo():
@@ -53,8 +55,8 @@ void handleMouseMotion(const SDL_Event* event) {
     MouseInfo* mi = &g_mouse_info;
     mi->x_ = (float)event->motion.x;
     mi->y_ = (float)event->motion.y;
-    mi->rel_x_ = (float)event->motion.xrel;
-    mi->rel_y_ = (float)event->motion.yrel;
+    mi->rel_x_ += (float)event->motion.xrel;
+    mi->rel_y_ += (float)event->motion.yrel;
 }
 
 void handleMouseButton(const SDL_Event* event) {
@@ -63,7 +65,12 @@ void handleMouseButton(const SDL_Event* event) {
     MouseInfo* mi = &g_mouse_info;
     int idx = sdl2idx(event->button.button);
     if(idx != -1 && idx < MouseInfo::NUM_BUTTONS) {
-        mi->button_state_[idx] = event->type == SDL_MOUSEBUTTONUP ? KS_PRESSED : KS_RELEASED;
+        mi->x_ = (float)event->button.x;
+        mi->y_ = (float)event->button.y;
+        if(event->type == SDL_MOUSEBUTTONDOWN)
+            mi->button_pressed_event_[idx] = true;
+        else if(event->type == SDL_MOUSEBUTTONUP)
+            mi->button_released_event_[idx] = true;
     }
 }
 
@@ -86,12 +93,18 @@ void beginUpdateMouseState() {
     MouseInfo* mi = &g_mouse_info;
     mi->rel_x_ = mi->rel_y_ = 0.0f;
     mi->wheel_hor_ = mi->wheel_vert_ = 0.0f;
+    memset(mi->button_pressed_event_, 0, sizeof(mi->button_pressed_event_));
+    memset(mi->button_released_event_, 0, sizeof(mi->button_released_event_));
 }
 
 void updateMouseState() {
     MouseInfo* mi = &g_mouse_info;
 
-    Uint32 button_state = SDL_GetMouseState(NULL, NULL);
+    int mouse_x = 0;
+    int mouse_y = 0;
+    Uint32 button_state = SDL_GetMouseState(&mouse_x, &mouse_y);
+    mi->x_ = (float)mouse_x;
+    mi->y_ = (float)mouse_y;
     int buttons[] = {SDL_BUTTON_LEFT, SDL_BUTTON_MIDDLE, SDL_BUTTON_RIGHT, SDL_BUTTON_X1, SDL_BUTTON_X2 };
 
     for(unsigned int b=0; b < sizeof(buttons)/sizeof(buttons[0]); ++b) {
@@ -102,7 +115,11 @@ void updateMouseState() {
 
         KeyState prev_ks = mi->button_state_[idx];
 
-        if(button_state & SDL_BUTTON(buttons[b])) {
+        if(mi->button_pressed_event_[idx]) {
+            mi->button_state_[idx] = KS_PRESSED;
+        } else if(mi->button_released_event_[idx]) {
+            mi->button_state_[idx] = KS_RELEASED;
+        } else if(button_state & SDL_BUTTON(buttons[b])) {
             mi->button_state_[idx] = 
                 (prev_ks==KS_FREE||prev_ks==KS_RELEASED) ? KS_PRESSED : KS_HELD;
         } else {

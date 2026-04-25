@@ -11,7 +11,6 @@ uniform vec4 light_offset_;
 in PREC vec3 Normal;
 //in PREC float FogValue;
 in PREC vec2 Texcoord;
-in PREC vec4 VertexColor;
 in PREC vec3 VertexLight;
 in PREC vec3 WorldPos;
 in PREC vec3 CameraPos;
@@ -38,7 +37,7 @@ void main(void)
 #if ENABLE_VERTEX_LIGHTING
 	PREC vec3 lighting = VertexLight;
 #else
-    const int lights_index = int(light_offset_.x);
+    int lights_index = int(light_offset_.x);
     PREC vec3 lighting = calc_light(lights_index, Normal, VertexLight);
 #endif
 
@@ -48,4 +47,3 @@ void main(void)
 
 	FragColor = vec4(c.xyz, c.a);
 }
-

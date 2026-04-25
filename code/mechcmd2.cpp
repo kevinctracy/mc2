@@ -834,9 +834,11 @@ void __stdcall InitializeGameEngine()
 	#else
 		gosResourceHandle = gos_OpenResourceDLL("mc2res_32.dll", NULL, 0);
 	#endif
-#else
-	gosResourceHandle = gos_OpenResourceDLL("./libmc2res.so", NULL, 0);
-#endif
+	#elif defined(PLATFORM_MACOS)
+		gosResourceHandle = gos_OpenResourceDLL("./libmc2res_64.dylib", NULL, 0);
+	#else
+		gosResourceHandle = gos_OpenResourceDLL("./libmc2res.so", NULL, 0);
+	#endif
 
 	if(!gosResourceHandle) {
         fprintf(stderr, "Error loading ResourseDLL (mc2res)\n");
@@ -1338,7 +1340,7 @@ void __stdcall InitializeGameEngine()
                 
 				result = optsFile->readIdLong("ResolutionY",resolutionY);
 				if (result != NO_ERR)
-					resolutionX = 600;
+					resolutionY = 600;
 	
 				result = optsFile->readIdBoolean("FullScreen",fullScreen);
 				if (result != NO_ERR)

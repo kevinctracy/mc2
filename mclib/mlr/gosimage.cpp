@@ -74,7 +74,7 @@ GOSImage::~GOSImage()
 	{
 		if (mcTextureManager)
 		{
-			mcTextureManager->removeTexture(mcTextureNodeIndex);
+			mcTextureManager->removeTextureNode(mcTextureNodeIndex);
 			mcTextureNodeIndex = 0xffffffff;
 		}
 	}

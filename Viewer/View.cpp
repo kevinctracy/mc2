@@ -220,6 +220,8 @@ void __stdcall InitializeGameEngine()
 #else
 	gosResourceHandle = gos_OpenResourceDLL("mc2res_32.dll", NULL, 0);
 #endif
+#elif defined(PLATFORM_MACOS)
+	gosResourceHandle = gos_OpenResourceDLL("./libmc2res_64.dylib", NULL, 0);
 #else
 	gosResourceHandle = gos_OpenResourceDLL("./libmc2res.so", NULL, 0);
 #endif

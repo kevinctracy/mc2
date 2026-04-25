@@ -21,20 +21,21 @@ GOSImagePool::GOSImagePool() :
 //
 GOSImagePool::~GOSImagePool()
 {
-	HashIteratorOf<GOSImage*, MString> images(&imageHash);
-	images.DeletePlugs();
+	UnLoadImages();
 }
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //
 void GOSImagePool::UnLoadImages (void)
 {
-	HashIteratorOf<GOSImage*, MString> images(&imageHash);
-	GOSImage *image = images.ReadAndNext();
-	while (image)
+	for(;;)
 	{
+		HashIteratorOf<GOSImage*, MString> images(&imageHash);
+		GOSImage *image = images.ReadAndNext();
+		if(!image)
+			break;
+
 		RemoveImage(image);
-		image = images.ReadAndNext();
 	}
 }
 

@@ -74,11 +74,11 @@ void
 
 //------------------------------------------------------------------------------
 //
-void
-	gosFX::EffectLibrary::Save(Stuff::MemoryStream* stream)
+	void
+		gosFX::EffectLibrary::Save(Stuff::MemoryStream* stream)
 {
 	WriteGFXVersion(stream);
-	*stream << m_effects.GetLength();
+	*stream << static_cast<uint32_t>(m_effects.GetLength());
 	for (unsigned i=0; i<m_effects.GetLength(); ++i)
 	{
 		Check_Object(m_effects[i]);

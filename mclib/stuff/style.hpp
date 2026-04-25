@@ -175,4 +175,6 @@ namespace Stuff {
 
 }
 
+#ifndef __APPLE__
 void* operator new(size_t size, void* where) noexcept;
+#endif

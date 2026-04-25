@@ -73,7 +73,7 @@ void initColorTables (void)
 			sprintf(colorBlock,"Color%d",j);
 
             // sebi
-            long unsigned int tmp;
+            DWORD tmp;
 			result = colorFile.readIdULong(colorBlock, tmp);
             table[j] = (DWORD)tmp;
 			gosASSERT(result == NO_ERR);

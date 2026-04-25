@@ -1,5 +1,5 @@
 //#version 300 es
-// using this because it is required if we want to use "binding" qualifier in layout (can be set in cpp code but it is easier to do in shader, so procedd like this and maybe change later)
+// Uniform block bindings are assigned by the renderer for OpenGL 4.1 compatibility.
 //#version 420
 
 #include <include/lighting.hglsl>
@@ -9,7 +9,7 @@ layout(location = 1) in vec3 normal;
 layout(location = 2) in vec4 aRGBLight;
 layout(location = 3) in vec2 texcoord;
 
-layout (binding = 1, std140) uniform mesh_data
+layout (std140) uniform mesh_data
 { 
   vec4 ambient;
   vec4 diffuse;
@@ -32,7 +32,6 @@ uniform float forceZ; // baked in a wvp matrix
 out vec3 Normal;
 out float FogValue;
 out vec2 Texcoord;
-out vec4 VertexColor;
 out vec3 VertexLight;
 out vec3 WorldPos;
 out vec3 CameraPos;
@@ -48,6 +47,7 @@ void main(void)
     p.w = abs(rhw);
 
     WorldPos = (world_ * vec4(pos.xyz, 1.0)).xyz;
+    CameraPos = g_scene.cameraPos.xyz;
 
     // something is wrong with this: check later
     //CameraPos = (inverse(view_) * vec4(0,0,0,1)).xyz;
@@ -68,12 +68,10 @@ void main(void)
             vec3(0.0), vec3(0.0), vec3(0.0));
 
 #if ENABLE_VERTEX_LIGHTING
-    const int lights_index = int(light_offset_.x);
+    int lights_index = int(light_offset_.x);
     VertexLight = calc_light(lights_index, Normal, base_light);
 #else
     VertexLight = base_light;
 #endif
 
-    VertexColor = aRGBLight.bgra;
 }
-

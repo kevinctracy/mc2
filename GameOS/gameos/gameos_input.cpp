@@ -6,6 +6,20 @@
 
 #include<string.h>
 
+extern SDL_Window* g_sdl_window;
+
+static void get_mouse_window_size(float* width, float* height)
+{
+    int window_width = Environment.screenWidth;
+    int window_height = Environment.screenHeight;
+
+    if(g_sdl_window)
+        SDL_GetWindowSize(g_sdl_window, &window_width, &window_height);
+
+    *width = window_width > 0 ? (float)window_width : (float)Environment.screenWidth;
+    *height = window_height > 0 ? (float)window_height : (float)Environment.screenHeight;
+}
+
 //
 // The mouse position and buttons are read once a frame.
 //
@@ -29,11 +43,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 void __stdcall gos_GetMouseInfo( float* pXPosition, float* pYPosition, int* pXDelta, int* pYDelta, int* pWheelDelta, DWORD* pButtonsPressed )
 {
-    //const float w = (float)Environment.screenWidth;
-    //const float h = (float)Environment.screenHeight;
-
-    const float w = (float)Environment.drawableWidth;
-    const float h = (float)Environment.drawableHeight;
+    float w;
+    float h;
+    get_mouse_window_size(&w, &h);
 
     const input::MouseInfo* mi = input::getMouseInfo();
 
@@ -52,9 +64,9 @@ void __stdcall gos_GetMouseInfo( float* pXPosition, float* pYPosition, int* pXDe
         *pYDelta = (int)(100.0f * clamp(mi->rel_y_ / h, -1.0f, 1.0f));
         */
     if(pXDelta)
-        *pXDelta = (int)(clamp(mi->rel_x_, -w, w));
+        *pXDelta = (int)(clamp(mi->rel_x_ * (float)Environment.screenWidth / w, -(float)Environment.screenWidth, (float)Environment.screenWidth));
     if(pYDelta)
-        *pYDelta = (int)(clamp(mi->rel_y_, -h, h));
+        *pYDelta = (int)(clamp(mi->rel_y_ * (float)Environment.screenHeight / h, -(float)Environment.screenHeight, (float)Environment.screenHeight));
 
     //if(pWheelDelta)
     //  *pWheelDelta = (int)(100.0f * (mi->wheel_vert_ / h));
@@ -74,11 +86,13 @@ void __stdcall gos_GetMouseInfo( float* pXPosition, float* pYPosition, int* pXDe
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-extern SDL_Window* g_sdl_window;
 void __stdcall gos_SetMousePosition( float XPosition, float YPosition )
 {
     if(g_sdl_window) {
-        SDL_WarpMouseInWindow(g_sdl_window, (int)XPosition, (int)YPosition);
+        float w;
+        float h;
+        get_mouse_window_size(&w, &h);
+        SDL_WarpMouseInWindow(g_sdl_window, (int)(XPosition * w), (int)(YPosition * h));
     }
 }
 
@@ -396,4 +410,3 @@ gosEnum_KeyStatus __stdcall gos_GetKeyStatus(gosEnum_KeyIndex index)
 
     return KEY_FREE;
 }
-

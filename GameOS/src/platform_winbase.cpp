@@ -23,6 +23,33 @@
 
 static int gGetLastError = 0;
 
+static time_t StatAccessTime(const struct stat& s)
+{
+#ifdef __APPLE__
+    return s.st_atimespec.tv_sec;
+#else
+    return s.st_atim.tv_sec;
+#endif
+}
+
+static time_t StatModifyTime(const struct stat& s)
+{
+#ifdef __APPLE__
+    return s.st_mtimespec.tv_sec;
+#else
+    return s.st_mtim.tv_sec;
+#endif
+}
+
+static time_t StatChangeTime(const struct stat& s)
+{
+#ifdef __APPLE__
+    return s.st_ctimespec.tv_sec;
+#else
+    return s.st_ctim.tv_sec;
+#endif
+}
+
 DWORD GetTimeZoneInformation(LPTIME_ZONE_INFORMATION tzi)
 {
 
@@ -123,8 +150,8 @@ BOOL CopyFile(  LPCTSTR lpExistingFileName,
         fstat(src, &file_info);
 
         struct utimbuf ut;
-        ut.actime = file_info.st_atim.tv_sec;
-        ut.modtime = file_info.st_mtim.tv_sec;
+        ut.actime = StatAccessTime(file_info);
+        ut.modtime = StatModifyTime(file_info);
         utime(lpExistingFileName, &ut);
     }
 
@@ -284,18 +311,18 @@ static void FillFindData(const char* dir_name, const char* entry_name, LPWIN32_F
         uint64_t sec_since = 60*60*24*365*1601L; // well approximately
 
         // all date setting is incorrect
-        uint64_t sec = s.st_atim.tv_sec - sec_since;
-        uint64_t nsec = sec*1e9 + s.st_atim.tv_sec;
+        uint64_t sec = StatAccessTime(s) - sec_since;
+        uint64_t nsec = sec*1e9 + StatAccessTime(s);
 	    lpFindFileData->ftLastAccessTime.dwLowDateTime = (DWORD)nsec&0xffffffff;
 	    lpFindFileData->ftLastAccessTime.dwHighDateTime = (DWORD)(nsec>>32)&0xffffffff;
 
-        sec = s.st_ctim.tv_sec - sec_since;
-        nsec = sec*1e9 + s.st_ctim.tv_sec;
+        sec = StatChangeTime(s) - sec_since;
+        nsec = sec*1e9 + StatChangeTime(s);
 	    lpFindFileData->ftCreationTime.dwLowDateTime = (DWORD)nsec&0xffffffff;
 	    lpFindFileData->ftCreationTime.dwHighDateTime = (DWORD)(nsec>>32)&0xffffffff;
 
-        sec = s.st_ctim.tv_sec - sec_since;
-        nsec = sec*1e9 + s.st_ctim.tv_sec;
+        sec = StatChangeTime(s) - sec_since;
+        nsec = sec*1e9 + StatChangeTime(s);
 	    lpFindFileData->ftLastWriteTime.dwLowDateTime = (DWORD)nsec&0xffffffff;
 	    lpFindFileData->ftLastWriteTime.dwHighDateTime = (DWORD)(nsec>>32)&0xffffffff;
 
@@ -395,6 +422,5 @@ BOOL WINAPI FindClose(HANDLE hFindFile)
 
 
 #endif // PLATFORM_WINDOWS
-
 
 

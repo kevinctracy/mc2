@@ -5,6 +5,10 @@ project(mc2)
 
 include(CMakeToolsHelpers OPTIONAL)
 
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Set a default build type for single-configuration
 # CMake generators if no build type is set.
 #IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
@@ -50,16 +54,36 @@ endif()
 
 
 add_definitions(-DUSE_ASSEMBLER_CODE=0)
-add_definitions(-DLINUX_BUILD)
 
-find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2)
-find_package(SDL2 REQUIRED CONFIG REQUIRED COMPONENTS SDL2main)
+if(NOT MSVC)
+	add_definitions(-DLINUX_BUILD)
+endif()
+
+if(APPLE)
+	add_definitions(-DPLATFORM_MACOS)
+	add_definitions(-DGL_SILENCE_DEPRECATION)
+	add_definitions(-DCLOCK_MONOTONIC_RAW=CLOCK_MONOTONIC)
+	include_directories("${CMAKE_CURRENT_SOURCE_DIR}/compat/apple")
+endif()
+
+find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2)
+if(WIN32)
+	find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2main)
+endif()
 find_package(SDL2_mixer REQUIRED)
 #required by text_tool
 find_package(SDL2_ttf REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(ZLIB REQUIRED)
+
+set(SDL2_LINK_LIBS ${SDL2_LIBRARIES})
+if(TARGET SDL2::SDL2)
+	set(SDL2_LINK_LIBS SDL2::SDL2)
+endif()
+if(TARGET SDL2::SDL2main)
+	list(APPEND SDL2_LINK_LIBS SDL2::SDL2main)
+endif()
 
 message("Found SDL2 package ${SDL2_LIBRARIES}" )
 message("SDL2 prefix: ${SDL2_PREFIX}")
@@ -182,17 +206,20 @@ set(SOURCES
 include_directories(${COMMON_INCLUDE_DIRS} "./mclib" "./gui" "./code" "./netlib")
 include_directories(${THIRDPARTY_INCLUDE_DIRS})
 
-if(NOT WIN32)
-	set(ADDITIONAL_LIBS dl)
-	message("Not win32 system")
-else()
+set(ADDITIONAL_LIBS)
+if(WIN32)
 	# winmm for timeGetTime, maybe switch to GetTickCount to remove this dependency
-	set(ADDITIONAL_LIBS winmm)
+	list(APPEND ADDITIONAL_LIBS winmm)
+else()
+	message("Not win32 system")
+	if(UNIX AND NOT APPLE)
+		list(APPEND ADDITIONAL_LIBS dl)
+	endif()
 endif()
 
 
 add_executable(mc2 ${SOURCES} ${MAIN_SRC})
-target_link_libraries(mc2 mclib gosfx mlr stuff gui gameos gameos_main windows ZLIB::ZLIB ${SDL2_LIBRARIES} GLEW::GLEW SDL2_mixer::SDL2_mixer ${ADDITIONAL_LIBS} OpenGL::GL)
+target_link_libraries(mc2 mclib gosfx mlr stuff gui gameos gameos_main windows ZLIB::ZLIB ${SDL2_LINK_LIBS} GLEW::GLEW SDL2_mixer::SDL2_mixer ${ADDITIONAL_LIBS} OpenGL::GL)
 
 add_subdirectory("./res" "./out/res")
 add_subdirectory("./data_tools" "./out/data_tools")

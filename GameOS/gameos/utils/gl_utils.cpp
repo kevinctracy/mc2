@@ -3,7 +3,7 @@
 #endif
 #include <cassert>
 #include <cstring>
-#include <GL/glew.h>
+#include "utils/graphics.h"
 #include "utils/shader_builder.h"
 #include "utils/gl_utils.h"
 #include "utils/vec.h"

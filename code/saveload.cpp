@@ -112,6 +112,7 @@
 
 #include "../resource.h"
 #include<gameos.hpp>
+#include "platform_str.h"
 #ifndef LINUX_BUILD
 #include<ddraw.h>
 #else
@@ -671,7 +672,7 @@ void Mission::load (const char *loadFileName)
 	const char *cmpName = campaignName.Data();
 
 	/*
-	if (stricmp(campName,cmpName) != 0)
+	if (S_stricmp(campName,cmpName) != 0)
 	{
 		char msg[2048];
 		cLoadString(IDS_QUICKSAVE_CAMPAIGN_WRONG,msg,2047);

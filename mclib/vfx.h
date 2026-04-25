@@ -74,7 +74,7 @@ extern "C" {
 
 typedef unsigned char  UBYTE;
 typedef unsigned short UWORD;
-typedef unsigned long  ULONG;
+typedef unsigned int   ULONG;
 typedef unsigned char  BYTE;
 
 // sebi

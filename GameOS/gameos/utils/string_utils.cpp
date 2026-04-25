@@ -8,6 +8,7 @@
 #include <cassert>
 #include <cstdarg>
 #include <cstdio>
+#include <cstdlib>
 #include <wchar.h>
 
 void StringFree(char* s)

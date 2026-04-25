@@ -42,9 +42,13 @@
 
 static __inline__ unsigned long long rdtsc(void)
 {
-    unsigned long x;
-    __asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
-    return x;
+#if defined(__i386__) || defined(__x86_64__)
+    unsigned int lo, hi;
+    __asm__ volatile ("rdtsc" : "=a" (lo), "=d" (hi));
+    return ((unsigned long long)hi << 32) | lo;
+#else
+    return 0;
+#endif
 }
 // or just use clock_gettime(CLOCK_MONOTONIC_RAW);
 // or 
@@ -3335,4 +3339,3 @@ public:
 };
 
 #endif // __cplusplus
-

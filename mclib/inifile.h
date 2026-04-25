@@ -150,6 +150,9 @@ class FitIniFile : public File
 		long readIdULong (const char *varName, uint64_t &value);
         // sebi
 		long readIdULong (const char *varName, DWORD &value);
+#if defined(__APPLE__)
+		long readIdULong (const char *varName, unsigned long &value);
+#endif
 		
 		long readIdShort (const char *varName, short &value);
 		long readIdUShort (const char *varName, unsigned short &value);

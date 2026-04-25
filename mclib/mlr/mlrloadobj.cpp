@@ -5,6 +5,7 @@
 #include"mlrstuff.hpp"
 
 #include"ctype.h"
+#include "platform_str.h"
 
 #if !defined(MSTRING_HPP)
 #include"mstring.hpp"
@@ -37,7 +38,7 @@ const int CHUNK = 4096;
 const int MAX_MTL_FILES = 512;
 
 // case insensitive string equality test 
-#define        SAME(_a, _b)        (stricmp(_a,_b) == 0)
+#define        SAME(_a, _b)        (S_stricmp(_a,_b) == 0)
 
 // list of textures defined by Wavefront material files 
 typedef struct TEX

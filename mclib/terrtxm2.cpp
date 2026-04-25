@@ -1080,6 +1080,15 @@ void TerrainColorMap::resetWaterDetailTextures (const char *fileName)
 			strcpy(subStringToBeReplaced, dName);
 		}
 		
+		if (!fileExists(waterFile))
+		{
+			if (!i)
+				break;		//No water detail!
+
+			waterDetailNodeIndex[i] = 0xffffffff;
+			break;			//End of the water detail animation.
+		}
+
 		bool textureIsOK = true;
 		if (!textureIsOKFormat(waterFile))
 		{
@@ -1087,7 +1096,7 @@ void TerrainColorMap::resetWaterDetailTextures (const char *fileName)
 			textureIsOK = false;
 		}
 
-		if (textureIsOK && fileExists(waterFile))
+		if (textureIsOK)
 		{
 			if (!i)		//If we found the first one OK, erase the current ones!!
 			{
@@ -1105,9 +1114,6 @@ void TerrainColorMap::resetWaterDetailTextures (const char *fileName)
 		}
 		else
 		{
-			if (!i)
-				break;		//No water detail!
-				
 			waterDetailNodeIndex[i] = 0xffffffff;
 		}
 	}
@@ -1672,9 +1678,9 @@ long TerrainColorMap::init (char *fileName)
 		DWORD jpgColorMapHeight = 0;
 
 		File colorMapFile;
-		long result = colorMapFile.open(burnInJpg);
+		long result = ~NO_ERR;
 		// sebi :-)
-		if (result == NO_ERR && false)
+		if (false && fileExists(burnInJpg) && (result = colorMapFile.open(burnInJpg)) == NO_ERR)
 		{
 			long fileSize = colorMapFile.fileSize();
 			MemoryPtr jpgData = (MemoryPtr)malloc(fileSize);

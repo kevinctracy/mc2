@@ -29,6 +29,12 @@ static const DWORD INVALID_TEXTURE_ID = 0;
 
 static gosRenderer* g_gos_renderer = NULL;
 
+#ifdef __APPLE__
+static const char* const kShaderVersionPreamble = "#version 410\n";
+#else
+static const char* const kShaderVersionPreamble = "#version 420\n";
+#endif
+
 gosRenderer* getGosRenderer() {
     return g_gos_renderer;
 }
@@ -166,7 +172,7 @@ class gosMaterialVariationHelper {
 
         void getMaterialVariation(gosMaterialVariation& variation)
         {
-            std::string defines_str = "#version 420\n";
+            std::string defines_str = kShaderVersionPreamble;
             std::string unique_suffix_str = "#";
             for(auto d : defines)
             {
@@ -1595,7 +1601,8 @@ void gosRenderer::endFrame()
     {
         for(int i=0; i< materialList_.size(); ++i)
         {
-            materialList_[i]->checkReload();
+            if(materialList_[i])
+                materialList_[i]->checkReload();
         }
     }
 }

@@ -1,6 +1,7 @@
 #include"stuffheaders.hpp"
 #include"database.hpp"
 #include<toolos.hpp>
+#include <new>
 #include <stddef.h> // ptrdiff_t
 
 //===========================================================================//
