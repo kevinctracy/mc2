@@ -264,12 +264,12 @@ int	OptionsXScreen::handleMessage( unsigned long message, unsigned long who)
 				int oldResX = prefs.resolutionX;
 				int oldResY = prefs.resolutionY;
 				int oldDepth = prefs.bitDepth;
-				for ( int i = 0; i < 4; i++ )
-					tabAreas[i]->end();
+					for ( int i = 0; i < 4; i++ )
+						tabAreas[i]->end();
 
-				prefs.save();
-				prefs.applyPrefs(0);
-				LoadScreenWrapper::changeRes();
+					prefs.save();
+					prefs.applyPrefs(true);
+					LoadScreenWrapper::changeRes();
 
 				int newResX = prefs.resolutionX;
 				int newResY = prefs.resolutionY;

@@ -2471,7 +2471,13 @@ void __stdcall gos_SetScreenMode( DWORD Width, DWORD Height, DWORD bitDepth/*=16
     gosASSERT(g_gos_renderer);
     gosASSERT((GotoFullScreen && !GotoWindowMode) || (!GotoFullScreen&&GotoWindowMode) || (!GotoFullScreen&&!GotoWindowMode));
 
-    g_gos_renderer->setScreenMode(Width, Height, bitDepth, GotoFullScreen, AntiAlias);
+	bool fullscreen = Environment.fullScreen;
+	if (GotoFullScreen)
+		fullscreen = true;
+	else if (GotoWindowMode)
+		fullscreen = false;
+
+    g_gos_renderer->setScreenMode(Width, Height, bitDepth, fullscreen, AntiAlias);
 }
 
 void __stdcall gos_SetupViewport( bool FillZ, float ZBuffer, bool FillBG, DWORD BGColor, float top, float left, float bottom, float right, bool ClearStencil/*=0*/, DWORD StencilValue/*=0*/)
