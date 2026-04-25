@@ -125,6 +125,7 @@ private:
 	ResModes        *resolutionModes;
 	char            **resolutionModesStr;
 	int             numResolutionModes;
+	int             resolutionModeCapacity;
 
 	bool addResolutionMode(int xRes, int yRes, int bitDepth);
 
