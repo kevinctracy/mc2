@@ -41,6 +41,7 @@ public:
     int resolutionY;
 
 	bool fullScreen;
+	bool showFPS;
 	long gammaLevel;
 	bool useLeftRightMouseProfile; // if false, use old style commands
 	long baseColor;

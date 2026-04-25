@@ -118,11 +118,15 @@ public:
 private:
 	aDropList		resolutionList;
 	aDropList		cardList;
+	aDropList		displayModeList;
+	aDropList		fpsOverlayList;
 	bool			bExpanded;
 
-    ResModes        *resolutionModes;
-    char            **resolutionModesStr;
-    int             numResolutionModes;
+	ResModes        *resolutionModes;
+	char            **resolutionModesStr;
+	int             numResolutionModes;
+
+	bool addResolutionMode(int xRes, int yRes, int bitDepth);
 
 };
 

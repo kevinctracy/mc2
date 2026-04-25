@@ -514,6 +514,10 @@ void DEBUGWINS_renderSpecialWindows (void) {
 
 	gos_TextSetAttributes(DebugWindow[0]->font, 0xffffffff, 1.0, true, true, false, false);
 	gos_TextSetRegion(0, 0, Environment.screenWidth, Environment.screenHeight );
+	if (prefs.showFPS) {
+		gos_TextSetPosition(15, 10);
+		gos_TextDraw("FPS: %.1f", frameRate);
+	}
 	gos_TextSetPosition(15, 10);
 	if (DebugStatusBarOpen && DebugStatusBarString[0])
 		gos_TextDraw(DebugStatusBarString);

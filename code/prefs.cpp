@@ -58,7 +58,8 @@ CPrefs::CPrefs() {
     resolutionY = 600;
     bitDepth = 32;
 
-	fullScreen = false;
+	fullScreen = true;
+	showFPS = false;
 	gammaLevel = 0;
 	useLeftRightMouseProfile = true; // if false, use old style commands
 	for ( int i = 0; i < 10; i++ )
@@ -188,7 +189,11 @@ int CPrefs::load( const char* pFileName ) {
 
 			result = prefsFile->readIdBoolean("FullScreen",fullScreen);
 			if (result != NO_ERR)
-				fullScreen = false;
+				fullScreen = true;
+
+			result = prefsFile->readIdBoolean("ShowFPS",showFPS);
+			if (result != NO_ERR)
+				showFPS = false;
 
 			result = prefsFile->readIdLong("Brightness",gammaLevel);
 			if (result != NO_ERR)
@@ -326,6 +331,7 @@ int CPrefs::save() {
 			result = prefsFile->writeIdLong("ResolutionX",resolutionX);
 			result = prefsFile->writeIdLong("ResolutionY",resolutionY);
 			result = prefsFile->writeIdBoolean("FullScreen",fullScreen);
+			result = prefsFile->writeIdBoolean("ShowFPS",showFPS);
 			result = prefsFile->writeIdLong("Brightness",gammaLevel);
 			result = prefsFile->writeIdBoolean( "useLeftRightMouseProfile", useLeftRightMouseProfile );
 			char blockName[64];

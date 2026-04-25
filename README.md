@@ -8,7 +8,7 @@ Disclaimer: I consider this project finished for now, there is a lot more to do 
 
 
 This port is an open source implementation of a closed MC2 engine code using available interface (.h) files.
-Currently game can be run on both Linux and Windows in 64bit mode.
+Currently game can be run on Linux, Windows, and Apple Silicon macOS in 64bit mode.
 Fixed a lot of bugs (including ones present in original game).
 Sound system is not fully implemented (panning, doppler, etc. not supported yet)
 
@@ -149,9 +149,68 @@ All steps are same as for the main application. As a result you'll have next bin
 
 Once everything in place, you can launch build scripts as described in corresponding ```README.txt``` file.
 
+Building and running on Apple Silicon macOS
+===========================================
+
+The macOS port builds natively on ARM64 Macs and uses SDL2 plus Apple's OpenGL
+compatibility stack. The game still needs the original/runtime data files built
+from the separate [mc2srcdata](https://github.com/alariq/mc2srcdata) repository.
+
+Install build dependencies with Homebrew:
+
+```
+brew install cmake sdl2 sdl2_mixer sdl2_ttf glew zlib
+```
+
+Build the engine and tools:
+
+```
+git clone https://github.com/alariq/mc2.git
+cd mc2
+cmake -S . -B build-mac -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build-mac -j"$(sysctl -n hw.ncpu)"
+```
+
+The build produces the game binary at `build-mac/mc2`, the resource library at
+`build-mac/out/res/libmc2res_64.dylib`, and the data build tools under
+`build-mac/out/data_tools` and `build-mac/out/text_tool`.
+
+To prepare game data:
+
+1. Clone/build the `mc2srcdata` repository.
+2. Copy the generated tools into the data repo's `build_scripts` directory:
+   `aseconv`, `makefst`, `makersp`, `pak` (called `mpak` in older docs), and
+   `text_tool`.
+3. Run the data repo's build script as described by its README.
+4. Copy the generated runtime files next to `build-mac/mc2`.
+
+At minimum the runtime directory should contain `mc2`,
+`libmc2res_64.dylib`, the generated `*.fst` archives, the generated `.cfg`
+files such as `system.cfg`, `options.cfg`, and `prefs.cfg`, plus any generated
+`data/`, `assets/`, `shaders/`, and `testtxm.tga` files/directories.
+
+Run from the runtime directory so relative paths resolve correctly:
+
+```
+cd build-mac
+./mc2
+```
+
+macOS runtime notes:
+
+* Fullscreen is the default. To start windowed before launching, edit
+  `options.cfg` and set `b FullScreen = FALSE`.
+* In-game, open Options -> Graphics and use `Display: Fullscreen` or
+  `Display: Windowed` to switch modes.
+* The Graphics options screen also exposes common resolution sizes plus display
+  modes reported by SDL.
+* To show the FPS overlay before launching, edit `options.cfg` and set
+  `b ShowFPS = TRUE`; it can also be toggled from Options -> Graphics.
+* Fullscreen captures/hides the OS cursor. Windowed mode avoids mouse capture so
+  macOS window switching remains usable.
+
 
 Building on Linux
 =================
 
 You, probably already know hot to do it. If not, please, see windows building section, the process is quite similar.
-

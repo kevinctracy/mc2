@@ -364,6 +364,37 @@ OptionsGraphics::OptionsGraphics()
     resolutionModes = NULL;
     resolutionModesStr = NULL;
     numResolutionModes = 0;
+	bExpanded = false;
+}
+
+bool OptionsGraphics::addResolutionMode(int xRes, int yRes, int bitDepth)
+{
+	if (xRes <= 0 || yRes <= 0)
+		return false;
+
+	if (numResolutionModes >= MAX_LIST_ITEMS)
+		return false;
+
+	if (bitDepth <= 0)
+		bitDepth = 32;
+
+	for (int i = 0; i < numResolutionModes; ++i)
+	{
+		if (resolutionModes[i].xRes == xRes &&
+			resolutionModes[i].yRes == yRes &&
+			resolutionModes[i].bitDepth == bitDepth)
+			return false;
+	}
+
+	resolutionModes[numResolutionModes].xRes = xRes;
+	resolutionModes[numResolutionModes].yRes = yRes;
+	resolutionModes[numResolutionModes].bitDepth = bitDepth;
+
+	resolutionModesStr[numResolutionModes] = new char[256];
+	S_snprintf(resolutionModesStr[numResolutionModes], 256, "%dx%dx%d", xRes, yRes, bitDepth);
+	resolutionList.AddItem(resolutionModesStr[numResolutionModes], 0xffffffff);
+	numResolutionModes++;
+	return true;
 }
 
 void OptionsGraphics::init(long xOffset, long yOffset)
@@ -386,21 +417,32 @@ void OptionsGraphics::init(long xOffset, long yOffset)
 	resolutionList.move( xOffset, yOffset );
 	resolutionList.ListBox().setOrange( true );
 
-    const int num_modes = gos_GetNumDisplayModes(0);
-    gosASSERT(!resolutionModes && !resolutionModesStr);
-    resolutionModes = new ResModes[num_modes];
-    resolutionModesStr = new char*[num_modes];
-    numResolutionModes = num_modes;
+	const int displayIndex = gos_GetWindowDisplayIndex();
+	int num_modes = gos_GetNumDisplayModes(displayIndex);
+	if (num_modes < 0)
+		num_modes = 0;
 
-    const int displayIndex = gos_GetWindowDisplayIndex();
+	gosASSERT(!resolutionModes && !resolutionModesStr);
+	resolutionModes = new ResModes[num_modes + 8];
+	resolutionModesStr = new char*[num_modes + 8];
+	numResolutionModes = 0;
+
+	addResolutionMode(800, 600, 32);
+	addResolutionMode(1024, 768, 32);
+	addResolutionMode(1280, 720, 32);
+	addResolutionMode(1280, 800, 32);
+	addResolutionMode(1280, 1024, 32);
+	addResolutionMode(1600, 900, 32);
+	addResolutionMode(1600, 1200, 32);
+	addResolutionMode(1920, 1080, 32);
 
 	for ( int i = 0; i < num_modes; i++ ) {
-        gos_GetDisplayModeByIndex(displayIndex, i, &resolutionModes[i].xRes, &resolutionModes[i].yRes, &resolutionModes[i].bitDepth);
-
-        resolutionModesStr[i] = new char[256];
-        S_snprintf(resolutionModesStr[i], 256, "%dx%dx%d", resolutionModes[i].xRes, resolutionModes[i].yRes, resolutionModes[i].bitDepth);
-        resolutionList.AddItem( resolutionModesStr[i], 0xffffffff );
-    }
+		int xRes = 0;
+		int yRes = 0;
+		int bitDepth = 0;
+		if (gos_GetDisplayModeByIndex(displayIndex, i, &xRes, &yRes, &bitDepth))
+			addResolutionMode(xRes, yRes, bitDepth);
+	}
 
     /*
 	for ( int i = IDS_RESOLUTION0; i < IDS_RESOLUTION9 + 1; i++ )
@@ -421,6 +463,33 @@ void OptionsGraphics::init(long xOffset, long yOffset)
 		}
 	}
     */
+
+	file.close();
+
+	path.init( artPath, "mcl_options_combobox0", ".fit" );
+	if ( NO_ERR != file.open( path ) )
+	{
+		char error[256];
+		sprintf( error, "couldn't open file %s", (const char*)path );
+		Assert( 0, 0, error );
+		return;
+	}
+
+	displayModeList.init( &file, "PlayerNameComboBox" );
+	displayModeList.move( globalX(), globalY() );
+	displayModeList.move( xOffset, yOffset );
+	displayModeList.move( 0, 30 );
+	displayModeList.ListBox().setOrange( true );
+	displayModeList.AddItem( "Display: Fullscreen", 0xffffffff );
+	displayModeList.AddItem( "Display: Windowed", 0xffffffff );
+
+	fpsOverlayList.init( &file, "PlayerNameComboBox" );
+	fpsOverlayList.move( globalX(), globalY() );
+	fpsOverlayList.move( xOffset, yOffset );
+	fpsOverlayList.move( 278, 30 );
+	fpsOverlayList.ListBox().setOrange( true );
+	fpsOverlayList.AddItem( "FPS Overlay: Off", 0xffffffff );
+	fpsOverlayList.AddItem( "FPS Overlay: On", 0xffffffff );
 
 	file.close();
 
@@ -519,7 +588,9 @@ void OptionsGraphics::render()
 	LogisticsScreen::render();
 
 	resolutionList.render();
-	
+	displayModeList.render();
+	fpsOverlayList.render();
+
 	cardList.render();
 
 }
@@ -527,11 +598,21 @@ void OptionsGraphics::render()
 void OptionsGraphics::update()
 {
 
+	aDropList* expandedList = NULL;
 	if ( resolutionList.IsExpanded() )
+		expandedList = &resolutionList;
+	else if ( cardList.IsExpanded() )
+		expandedList = &cardList;
+	else if ( displayModeList.IsExpanded() )
+		expandedList = &displayModeList;
+	else if ( fpsOverlayList.IsExpanded() )
+		expandedList = &fpsOverlayList;
+
+	if ( expandedList )
 	{
 		textObjects[helpTextArrayID].setText( "" );
 		helpTextID = 0;
-		resolutionList.update();
+		expandedList->update();
 		if ( helpTextID )
 			textObjects[helpTextArrayID].setText( helpTextID );
 		bExpanded = true;
@@ -548,13 +629,15 @@ void OptionsGraphics::update()
 
 	}
 
-//	if ( cardList.ListBox().GetItemCount() > 1 )
-		cardList.update();
-
 	if ( !mission || !strlen( mission->getMissionFileName() ) )
 	{
 		if ( !bExpanded )
+		{
 			resolutionList.update(); // don't want to call 2x's
+			cardList.update();
+			displayModeList.update();
+			fpsOverlayList.update();
+		}
 	}
 
 	else if ( userInput->isLeftClick() &&
@@ -583,6 +666,8 @@ void OptionsGraphics::end()
 	prefs.useLocalShadows = getButton( MSG_LOCAL_SHADOWS )->isPressed();
 	prefs.asyncMouse = getButton( MSG_ASYNC_MOUSE )->isPressed();
 	prefs.renderer = getButton( MSG_HARDWARE_RASTERIZER )->isPressed() ? 0 : 3;
+	prefs.fullScreen = displayModeList.GetSelectedItem() != 1;
+	prefs.showFPS = fpsOverlayList.GetSelectedItem() == 1;
 
 	int sel = resolutionList.GetSelectedItem();
 	if ( sel > -1 )
@@ -668,6 +753,8 @@ void OptionsGraphics::reset(const CPrefs& newPrefs)
 	getButton( MSG_LOCAL_SHADOWS )->press( newPrefs.useLocalShadows );
 	getButton( MSG_ASYNC_MOUSE )->press( newPrefs.asyncMouse );
 	getButton( MSG_HARDWARE_RASTERIZER )->press( (newPrefs.renderer != 3) );
+	displayModeList.SelectItem( newPrefs.fullScreen ? 0 : 1 );
+	fpsOverlayList.SelectItem( newPrefs.showFPS ? 1 : 0 );
 
     // find index of mode
     int index = -1;

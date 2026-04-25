@@ -1622,14 +1622,23 @@ void gosRenderer::handleEvents()
                 0, 0, 1.0f, 0.0f,
                 0, 0, 0.0f, 1.0f);
 
-        if(graphics::resize_window(win_h_, width_, height_))
-		{
-            graphics::set_window_fullscreen(win_h_, reqGotoFullscreen);
+        bool modeChanged = false;
+        if (reqGotoFullscreen) {
+            graphics::resize_window(win_h_, width_, height_);
+            modeChanged = graphics::set_window_fullscreen(win_h_, true);
+        } else {
+            modeChanged = graphics::set_window_fullscreen(win_h_, false);
+            if (modeChanged)
+                modeChanged = graphics::resize_window(win_h_, width_, height_);
+        }
 
-            Environment.screenWidth = width_;
-            Environment.screenHeight = height_;
+        if(modeChanged)
+			{
+	            Environment.screenWidth = width_;
+	            Environment.screenHeight = height_;
+	            Environment.fullScreen = reqGotoFullscreen;
 
-			graphics::get_drawable_size(win_h_, &Environment.drawableWidth, &Environment.drawableHeight);
+				graphics::get_drawable_size(win_h_, &Environment.drawableWidth, &Environment.drawableHeight);
 
         }
         pendingRequest = false;
