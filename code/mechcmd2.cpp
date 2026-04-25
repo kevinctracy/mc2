@@ -262,6 +262,33 @@ long DisableAtStart[MAX_KILL_AT_START];
 OptionsScreenWrapper *optionsScreenWrapper = NULL;
 bool bInvokeOptionsScreenFlag = false;
 
+static bool isFrontendScreenActive()
+{
+	return logistics || (optionsScreenWrapper && !optionsScreenWrapper->isDone());
+}
+
+static void setInputViewportForCurrentProjection()
+{
+	if (!userInput)
+		return;
+
+	float viewMulX, viewMulY, viewAddX, viewAddY;
+	gos_GetViewport(&viewMulX, &viewMulY, &viewAddX, &viewAddY);
+	userInput->setViewport(viewMulX, viewMulY, viewAddX, viewAddY);
+}
+
+static void useFrontendLogicalScreen()
+{
+	gos_SetLogicalScreenSize(800, 600);
+	setInputViewportForCurrentProjection();
+}
+
+static void useNativeScreen()
+{
+	gos_ClearLogicalScreenSize();
+	setInputViewportForCurrentProjection();
+}
+
 bool SnifferMode = false;
 gos_VERTEX *testVertex = NULL;
 WORD *indexArray = NULL;
@@ -694,6 +721,7 @@ void __stdcall UpdateRenderers()
 		if (eye && mission->isActive())
 			bColor = eye->fogColor;
 
+		useNativeScreen();
 		gos_SetupViewport(1,1.0,1,bColor, 0.0, 0.0, 1.0, 1.0 );		//ALWAYS FULL SCREEN for now
 		gos_SetRenderState( gos_State_Filter, gos_FilterBiLinear );
 
@@ -713,27 +741,25 @@ void __stdcall UpdateRenderers()
 		if (mission && (!optionsScreenWrapper || optionsScreenWrapper->isDone() ) )
 			mission->render();
 
+		const bool renderFrontend = isFrontendScreenActive();
+		if (renderFrontend)
+			useFrontendLogicalScreen();
+
 		if (logistics)
 		{
-			float viewMulX, viewMulY, viewAddX, viewAddY;
-			gos_GetViewport(&viewMulX, &viewMulY, &viewAddX, &viewAddY);
-			userInput->setViewport(viewMulX,viewMulY,viewAddX,viewAddY);
-
 			logistics->render();
 		}
 
 		if (optionsScreenWrapper && !optionsScreenWrapper->isDone() )
 		{
-			float viewMulX, viewMulY, viewAddX, viewAddY;
-			gos_GetViewport(&viewMulX, &viewMulY, &viewAddX, &viewAddY);
-			userInput->setViewport(viewMulX,viewMulY,viewAddX,viewAddY);
-
 			optionsScreenWrapper->render();
 		}
 
 		//------------------------------------------------------------
 		gos_SetRenderState( gos_State_Filter, gos_FilterNone );
 		userInput->render();
+		if (renderFrontend)
+			useNativeScreen();
 
 		DEBUGWINS_render();
 
@@ -1215,11 +1241,11 @@ void __stdcall InitializeGameEngine()
 
 				result = systemFile->readIdFloat("AltitudeMaximumHi",Camera::AltitudeMaximumHi);
 				if (result != NO_ERR)
-					Camera::AltitudeMaximumHi = 1600.0f;
+					Camera::AltitudeMaximumHi = 6400.0f;
 
 				result = systemFile->readIdFloat("AltitudeMaximumLo",Camera::AltitudeMaximumLo);
 				if (result != NO_ERR)
-					Camera::AltitudeMaximumHi = 1500.0f;
+					Camera::AltitudeMaximumLo = 6000.0f;
 			}
 		}
 	
@@ -2089,7 +2115,11 @@ void __stdcall DoGameLogic()
 			//-------------------------------------
 			// Poll devices for this frame.
 			userInput->update();
-	
+			if (isFrontendScreenActive())
+				useFrontendLogicalScreen();
+			else
+				useNativeScreen();
+
 			//----------------------------------------
 			// Update the Sound System for this frame
 			soundSystem->update();
@@ -2125,9 +2155,9 @@ void __stdcall DoGameLogic()
 					optionsScreenWrapper->begin();
 				}
 			}
-			else
-			if (mission && (!optionsScreenWrapper || optionsScreenWrapper->isDone() ) )
+			else if (mission && (!optionsScreenWrapper || optionsScreenWrapper->isDone() ) )
 			{
+				useNativeScreen();
 				long result = mission->update();
 				if (result == 9999) {
 					mission->destroy();
@@ -2177,6 +2207,7 @@ void __stdcall DoGameLogic()
 			}
 			if (optionsScreenWrapper && !optionsScreenWrapper->isDone())
 			{
+				useFrontendLogicalScreen();
 				OptionsScreenWrapper::status_type result = optionsScreenWrapper->update();
 				if (result == OptionsScreenWrapper::opt_DONE)
 				{

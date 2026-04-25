@@ -107,24 +107,11 @@ void Logistics::start (long startMode)
 	userInput->setMouseCursor( mState_LOGISTICS );
 //	userInput->mouseOn();
 
-	DWORD localRenderer = prefs.renderer;
-	if (prefs.renderer != 0 && prefs.renderer != 3)
-		localRenderer = 0;
-
-   	bool localFullScreen = prefs.fullScreen;
-   	bool localWindow = !prefs.fullScreen;
-   	if (Environment.fullScreen && prefs.fullScreen)
-   		localFullScreen = false;
-
 	switch (startMode)
 	{
 		case log_RESULTS: // pull out results later...
 			active = true;
-			//Heading back to logistics now.  Change screen back to 800x600
-			if (prefs.renderer == 3)
-				gos_SetScreenMode(800,600,16,0,0,0,true,localFullScreen,0,localWindow,0,localRenderer);
-			else
-				gos_SetScreenMode(800,600,16,prefs.renderer,0,0,0,localFullScreen,0,localWindow,0,localRenderer);
+			prefs.applyPrefs(true);
 
 			lastMissionResult = scenarioResult;
 			if ( !missionResults )
@@ -182,10 +169,7 @@ void Logistics::start (long startMode)
 		case log_SPLASH:
 		{
 			if (aborted) {
-				if (prefs.renderer == 3)
-					gos_SetScreenMode(800,600,16,0,0,0,true,localFullScreen,0,localWindow,0,localRenderer);
-				else
-					gos_SetScreenMode(800,600,16,prefs.renderer,0,0,0,localFullScreen,0,localWindow,0,localRenderer);
+				prefs.applyPrefs(true);
 
 				if ( missionBegin )
 					missionBegin->beginSplash();

@@ -197,26 +197,12 @@ void MainMenu::begin()
 			userInput->mouseOn();
 			userInput->setMouseCursor( mState_LOGISTICS );
 
-			DWORD localRenderer = prefs.renderer;
-			if (prefs.renderer != 0 && prefs.renderer != 3)
-				localRenderer = 0;
-
-   			bool localFullScreen = prefs.fullScreen;
-   			bool localWindow = !prefs.fullScreen;
-   			if (Environment.fullScreen && prefs.fullScreen)
-   				localFullScreen = false;
-
-
-			// make sure we get into 800 x 600 mode
-			if ( Environment.screenWidth != 800 )
-			{
-			
-				if (prefs.renderer == 3)
-					gos_SetScreenMode(800,600,16,0,0,0,true,localFullScreen,0,localWindow,0,localRenderer);
-				else
-					gos_SetScreenMode(800,600,16,prefs.renderer,0,0,0,localFullScreen ,0,localWindow,0,localRenderer);
-			}
-
+			// Keep the shell at the user's selected display mode instead of
+			// forcing the original retail 800x600 logistics resolution.
+			if (Environment.screenWidth != prefs.resolutionX ||
+				Environment.screenHeight != prefs.resolutionY ||
+				Environment.fullScreen != prefs.fullScreen)
+				prefs.applyPrefs(true);
 
 	}
 }

@@ -978,6 +978,8 @@ class gosRenderer {
         gosRenderer(graphics::RenderContextHandle ctx_h, graphics::RenderWindowHandle win_h, int w, int h) {
             width_ = w;
             height_ = h;
+			logicalWidth_ = 0;
+			logicalHeight_ = 0;
             ctx_h_ = ctx_h;
             win_h_ = win_h;
         }
@@ -1129,16 +1131,36 @@ class gosRenderer {
 
         void getViewportTransform(float* viewMulX, float* viewMulY, float* viewAddX, float* viewAddY) {
             gosASSERT(viewMulX && viewMulY && viewAddX && viewAddY);
-            *viewMulX = (viewportRight_ - viewportLeft_)*width_;
-            *viewMulY = (viewportBottom_ - viewportTop_)*height_;
-            *viewAddX = viewportLeft_ * width_;
-            *viewAddY = viewportTop_ * height_;
+			const int coordWidth = logicalWidth_ > 0 ? logicalWidth_ : width_;
+			const int coordHeight = logicalHeight_ > 0 ? logicalHeight_ : height_;
+            *viewMulX = (viewportRight_ - viewportLeft_)*coordWidth;
+            *viewMulY = (viewportBottom_ - viewportTop_)*coordHeight;
+            *viewAddX = viewportLeft_ * coordWidth;
+            *viewAddY = viewportTop_ * coordHeight;
         }
 
 		void setRenderViewport(const vec4& vp) { render_viewport_ = vp; }
 		vec4 getRenderViewport() { return render_viewport_; }
 
 		const mat4& getProj2Screen() { return projection_; }
+		void updateProjection() {
+			const int coordWidth = logicalWidth_ > 0 ? logicalWidth_ : width_;
+			const int coordHeight = logicalHeight_ > 0 ? logicalHeight_ : height_;
+			projection_ = mat4(2.0f / (float)coordWidth, 0, 0.0f, -1.0f,
+					0, -2.0f / (float)coordHeight, 0.0f, 1.0f,
+					0, 0, 1.0f, 0.0f,
+					0, 0, 0.0f, 1.0f);
+		}
+		void setLogicalScreenSize(int width, int height) {
+			logicalWidth_ = width;
+			logicalHeight_ = height;
+			updateProjection();
+		}
+		void clearLogicalScreenSize() {
+			logicalWidth_ = 0;
+			logicalHeight_ = 0;
+			updateProjection();
+		}
 
         void setRenderState(gos_RenderState RenderState, int Value) {
             renderStates_[RenderState] = Value;
@@ -1202,6 +1224,8 @@ class gosRenderer {
         // render target size
         int width_;
         int height_;
+		int logicalWidth_;
+		int logicalHeight_;
         graphics::RenderContextHandle ctx_h_;
         graphics::RenderWindowHandle win_h_;
 
@@ -1294,11 +1318,7 @@ void gosRenderer::init() {
     // x = 1/w; x =2*x - 1;
     // y = 1/h; y= 1- y; y =2*y - 1;
     // z = z;
-    projection_ = mat4(
-            2.0f / (float)width_, 0, 0.0f, -1.0f,
-            0, -2.0f / (float)height_, 0.0f, 1.0f,
-            0, 0, 1.0f, 0.0f,
-            0, 0, 0.0f, 1.0f);
+	updateProjection();
 
 	graphics::get_drawable_size(win_h_, &Environment.drawableWidth, &Environment.drawableHeight);
 
@@ -1614,13 +1634,7 @@ void gosRenderer::handleEvents()
         width_ = reqWidth;
         height_ = reqHeight;
 
-        // x = 1/w; x =2*x - 1;
-        // y = 1/h; y= 1- y; y =2*y - 1;
-        // z = z;
-        projection_ = mat4(2.0f / (float)width_, 0, 0.0f, -1.0f,
-                0, -2.0f / (float)height_, 0.0f, 1.0f,
-                0, 0, 1.0f, 0.0f,
-                0, 0, 0.0f, 1.0f);
+		updateProjection();
 
         bool modeChanged = false;
         if (reqGotoFullscreen) {
@@ -2478,6 +2492,18 @@ void __stdcall gos_SetScreenMode( DWORD Width, DWORD Height, DWORD bitDepth/*=16
 		fullscreen = false;
 
     g_gos_renderer->setScreenMode(Width, Height, bitDepth, fullscreen, AntiAlias);
+}
+
+void __stdcall gos_SetLogicalScreenSize( int Width, int Height )
+{
+    gosASSERT(g_gos_renderer);
+	g_gos_renderer->setLogicalScreenSize(Width, Height);
+}
+
+void __stdcall gos_ClearLogicalScreenSize()
+{
+    gosASSERT(g_gos_renderer);
+	g_gos_renderer->clearLogicalScreenSize();
 }
 
 void __stdcall gos_SetupViewport( bool FillZ, float ZBuffer, bool FillBG, DWORD BGColor, float top, float left, float bottom, float right, bool ClearStencil/*=0*/, DWORD StencilValue/*=0*/)

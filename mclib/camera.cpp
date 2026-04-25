@@ -117,8 +117,8 @@ float zoomMin = 0.3f;
 float FOVMax = 75.0f;
 float FOVMin = 20.0f;
 float Camera::AltitudeMinimum = 560.0f;
-float Camera::AltitudeMaximumLo = 1500.0f;
-float Camera::AltitudeMaximumHi = 1600.0f;
+float Camera::AltitudeMaximumLo = 6000.0f;
+float Camera::AltitudeMaximumHi = 6400.0f;
 float Camera::AltitudeDefault = 1200.0f;
 float Camera::AltitudeTight = 800.0f;
 

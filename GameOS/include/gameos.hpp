@@ -2664,6 +2664,8 @@ void __stdcall gos_DestroyVertexDeclaration(HGOSVERTEXDECLARATION buffer);
 // Renderer is 0 for hardware or 3 for Blade
 //
 void __stdcall gos_SetScreenMode( DWORD Width, DWORD Height, DWORD bitDepth=16, DWORD Device=0, bool disableZBuffer=0, bool AntiAlias=0, bool RenderToVram=0, bool GotoFullScreen=0, int DirtyRectangle=0, bool GotoWindowMode=0, bool EnableStencil=0, DWORD Renderer=0 );
+void __stdcall gos_SetLogicalScreenSize( int Width, int Height );
+void __stdcall gos_ClearLogicalScreenSize();
 
 //
 // This API sets the current gamma correction value. The default value is 1.0 (no correction applied). All color values are effected by (value/255 ^ (1.0/gamma)).

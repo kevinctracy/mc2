@@ -90,11 +90,18 @@ static void process_events( void ) {
         case SDL_WINDOWEVENT:
             switch(event.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
                 {
-                    float w = (float)event.window.data1;
-                    float h = (float)event.window.data2;
-                    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
-                    SPEW(("INPUT", "resize event: w: %f h:%f\n", w, h));
+                    SDL_Window* window = SDL_GetWindowFromID(event.window.windowID);
+                    int drawableWidth = event.window.data1;
+                    int drawableHeight = event.window.data2;
+                    if (window)
+                        SDL_GL_GetDrawableSize(window, &drawableWidth, &drawableHeight);
+
+                    Environment.drawableWidth = drawableWidth;
+                    Environment.drawableHeight = drawableHeight;
+                    glViewport(0, 0, (GLsizei)drawableWidth, (GLsizei)drawableHeight);
+                    SPEW(("INPUT", "resize event: w: %d h:%d\n", drawableWidth, drawableHeight));
                 }
                 break;
             case SDL_WINDOWEVENT_FOCUS_GAINED:
@@ -352,18 +359,17 @@ int main(int argc, char** argv)
 
 	timing::init();
 
-    while( !g_exit ) {
+	while( !g_exit ) {
 
 		uint64_t start_tick = timing::gettickcount();
-		timing::sleep(10*1000000);
+
+        process_events();
 
         if(gos_RenderGetEnableDebugDrawCalls()) {
             gos_RenderUpdateDebugInput();
         } else {
             Environment.DoGameLogic();
         }
-
-        process_events();
 
 		gos_RendererHandleEvents();
 

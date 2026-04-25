@@ -157,21 +157,7 @@ void MissionBegin::begin()
 	}
 
 	//---------------------------------------------
-	DWORD localRenderer = prefs.renderer;
-	if (prefs.renderer != 0 && prefs.renderer != 3)
-		localRenderer = 0;
-
-   	bool localFullScreen = prefs.fullScreen;
-   	bool localWindow = !prefs.fullScreen;
-   	if (Environment.fullScreen && prefs.fullScreen)
-   		localFullScreen = false;
-
-	if (prefs.renderer == 3)
-		gos_SetScreenMode(800,600,16,0,0,0,true,localFullScreen,0,localWindow,0,localRenderer);
-	else if (prefs.bitDepth)
-		gos_SetScreenMode(800,600,32,prefs.renderer,0,0,0,localFullScreen,0,localWindow,0,localRenderer);
-	else
-		gos_SetScreenMode(800,600,16,prefs.renderer,0,0,0,localFullScreen,0,localWindow,0,localRenderer);
+	prefs.applyPrefs(true);
 
 	if ( mainMenu ) // already initialized
 	{

@@ -1656,10 +1656,10 @@ void MissionInterfaceManager::updateAOEStyle(bool shiftDn, bool altDn, bool ctrl
 			}			
 		}
 		else
-		{	
-			// tried to select nothing
+		{
+			// Selecting empty terrain should clear transient info without playing
+			// the invalid-command sound on every ordinary click.
 			controlGui.cancelInfo();
-			soundSystem->playDigitalSample( INVALID_GUI );
 		}
 	}
 }

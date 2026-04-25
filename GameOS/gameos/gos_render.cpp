@@ -212,7 +212,7 @@ RenderWindow* create_window(const char* pwinname, int width, int height)
     //fullscreen_mode.refresh_rate = state->refresh_rate;
 
     {
-        Uint32 window_flags = SDL_WINDOW_OPENGL;
+        Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
 #ifndef PLATFORM_MACOS
         window_flags |= SDL_WINDOW_ALLOW_HIGHDPI;
 #endif

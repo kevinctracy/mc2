@@ -149,40 +149,11 @@ void OptionsXScreen::init(FitIniFile* file)
 
 	}
 
-	// 640: offset x = -80, y = -90
-	// 800: offset none
-	// 1024: offset x = 113, y = 54
-	// 1280: offset x = 240, y = 182
-	// 1600: offset x = 400, y = 270
-
+	// The options art is a complete 800x600 screen. The renderer now scales
+	// logistics screens as one logical canvas, so legacy high-res offsets would
+	// push the panel off-screen after resolution changes.
 	long xOffset = 0;
 	long yOffset = 0;
-
-	switch (Environment.screenWidth)
-	{
-	case 640:
-		xOffset = -80;
-		yOffset = -90;
-		break;
-
-	case 1024:
-		xOffset = 13;
-		yOffset = 54;
-		break;
-	
-	case 1280:
-		xOffset = 240;
-		yOffset = 182;
-		break;
-	
-	case 1600:
-		xOffset = 400;
-		yOffset = 270;
-		break;
-
-
-
-	}
 
 	move( xOffset, yOffset );
 
